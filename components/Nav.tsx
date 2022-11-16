@@ -78,9 +78,7 @@ export function Nav() {
   const [burgerOpened, setBurgerOpened] = useState(false);
   const [search, setSearch] = useState('');
   const { classes, cx } = useStyles();
-  // const { currentUser, handleSignOut } = useAuth();
   const { data: session, status } = useSession();
-  const currentUser = false;
   const theme = useMantineTheme();
   const smallScreen = useMediaQuery(`(max-width: ${theme.breakpoints.sm}px`);
   const router = useRouter();
@@ -116,6 +114,7 @@ export function Nav() {
           <form
             onSubmit={(event) => {
               event.preventDefault();
+              
               if (search.trim() === '') {
                 showNotification({
                   message: 'You did not input something',
@@ -123,7 +122,9 @@ export function Nav() {
                 });
                 return;
               }
+
               router.push(`/search/${search}`);
+              setSearch('');
             }}
           >
             <TextInput
