@@ -19,20 +19,23 @@ export function ItemCard({ item }: ItemCardProps) {
   const isOwner = session?.user?.email === item.owner?.email;
 
   function handleClick() {
-    // // if (!currentUser) {
-    // router.push('/login');
-    // return;
-    // // }
+    if (!session) {
+      router.push('/signup');
+      return;
+    }
     setOpened(true);
   }
 
   async function moveToInventory() {
     try {
       setMoving(true);
-      // await updateDoc(doc(db, 'items', item.id), {
-      //   inMarket: false,
-      // });
-      router.push('/inventory');
+      await fetch(`/api/inMarket/${item.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ inMarket: false }),
+      });
       showNotification({
         message: `${item.name} has been moved to inventory.`,
         icon: <BiCheck />,
@@ -60,7 +63,6 @@ export function ItemCard({ item }: ItemCardProps) {
         },
         body: JSON.stringify({ inMarket: true }),
       });
-      router.push('/sell');
       showNotification({
         message: `${item.name} is now on sell.`,
         icon: <BiCheck />,

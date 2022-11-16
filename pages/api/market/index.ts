@@ -26,7 +26,11 @@ export default async function handle(
           },
         });
       } else {
-        result = await prisma.virtualItem.findMany();
+        result = await prisma.virtualItem.findMany({
+          include: {
+            owner: true,
+          },
+        });
       }
       return res.send(result);
     }
