@@ -13,11 +13,12 @@ import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import { useState } from 'react';
 import { BiCheck } from 'react-icons/bi';
-import GCashLogo from '@/assets/gcash-logo.png';
 import { useRouter } from 'next/router';
+import { useMutation } from '@tanstack/react-query';
 
 export function Purchase({ opened, setOpened, item }: any) {
   const [active, setActive] = useState(0);
+  const router = useRouter();
   const [purchaseLoading, setPurchaseLoading] = useState(false);
   const nextStep = () =>
     setActive((current) => (current < 3 ? current + 1 : current));
@@ -25,10 +26,10 @@ export function Purchase({ opened, setOpened, item }: any) {
     setActive((current) => (current > 0 ? current - 1 : current));
   const form = useForm({
     initialValues: {
-      number: '',
+      referenceNo: '',
     },
     validate: {
-      number: (value) =>
+      referenceNo: (value) =>
         !value
           ? 'Reference number is required'
           : !/^\d{11}/.test(value)
@@ -37,17 +38,22 @@ export function Purchase({ opened, setOpened, item }: any) {
     },
   });
 
-  const router = useRouter();
-  const currentUser = false;
+  const { mutate } = useMutation({
+    mutationFn: async (referenceNo: string) => {
+      await fetch(`/api/buy/${item.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ referenceNo }),
+      });
+    },
+  });
 
-  async function handlePurchase({ number }: any) {
+  async function handlePurchase({ referenceNo }: any) {
     try {
       setPurchaseLoading(true);
-      // await updateDoc(doc(db, 'items', item.id), {
-      //   'buyer.id': currentUser.uid,
-      //   'buyer.number': number,
-      //   inMarket: false,
-      // });
+      mutate(referenceNo);
       showNotification({
         title: '🎉 Successful',
         message: 'The owner has been notified.',
@@ -125,7 +131,7 @@ export function Purchase({ opened, setOpened, item }: any) {
                 placeholder="00012345678"
                 label="Payment Reference Number"
                 size="md"
-                {...form.getInputProps('number')}
+                {...form.getInputProps('referenceNo')}
               />
             </Stack>
             <Group grow position="right" mt="xl">
@@ -141,7 +147,7 @@ export function Purchase({ opened, setOpened, item }: any) {
         <Stepper.Completed>
           <Stack>
             <Text align="center" weight="bold">
-              Item successfully purchased
+              Item is waiting for approval
             </Text>
             <Text align="center" size="sm" color="dimmed">
               You can view your purchased virtual items
@@ -153,8 +159,12 @@ export function Purchase({ opened, setOpened, item }: any) {
             <Button variant="default" onClick={() => setOpened(false)}>
               Close
             </Button>
-            <Button onClick={() => router.push('/inventory')}>
-              Go to my inventory
+            <Button
+              onClick={() => {
+                setOpened(false);
+              }}
+            >
+              Go to market
             </Button>
           </Group>
         </Stepper.Completed>

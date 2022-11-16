@@ -18,6 +18,9 @@ export default async function handle(
             },
             bought: true,
           },
+          approvedAt: {
+            not: null,
+          },
         },
       });
       return res.send(result);

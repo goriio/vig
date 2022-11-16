@@ -14,6 +14,14 @@ export default function Sell() {
     },
   });
 
+  const { data: sales } = useQuery({
+    queryKey: ['sales'],
+    queryFn: async () => {
+      const response = await fetch('/api/sale');
+      return await response.json();
+    },
+  });
+
   return (
     <ItemList
       title="Sell"
@@ -22,7 +30,14 @@ export default function Sell() {
           <Button variant="subtle" onClick={() => router.push('/sales-report')}>
             View sales report
           </Button>
-          <Indicator inline dot processing label={1} size={22}>
+          <Indicator
+            showZero={false}
+            inline
+            dot
+            processing
+            label={sales?.length}
+            size={22}
+          >
             <Button variant="light" onClick={() => router.push('/sales')}>
               Sales
             </Button>

@@ -44,8 +44,8 @@ export default function Sales() {
   const { data: virtualItems } = useQuery({
     queryKey: ['sales'],
     queryFn: async () => {
-      const data = await fetch('/api/sale');
-      return await data.json();
+      const response = await fetch('/api/sale');
+      return await response.json();
     },
   });
 
