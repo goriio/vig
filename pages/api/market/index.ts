@@ -14,18 +14,15 @@ export default async function handle(
       if (session) {
         result = await prisma.virtualItem.findMany({
           where: {
-            AND: [
-              {
-                bought: false,
+            bought: false,
+            NOT: {
+              owner: {
+                email: session?.user?.email,
               },
-              {
-                NOT: {
-                  owner: {
-                    email: session?.user?.email,
-                  },
-                },
-              },
-            ],
+            },
+          },
+          include: {
+            owner: true,
           },
         });
       } else {

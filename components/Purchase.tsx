@@ -85,7 +85,7 @@ export function Purchase({ opened, setOpened, item }: any) {
               <Image
                 src={item.image}
                 alt={item.title}
-                height={100}
+                height={170}
                 fit="contain"
               />
             </Card>
@@ -118,7 +118,7 @@ export function Purchase({ opened, setOpened, item }: any) {
                   fit="contain"
                 />
                 <Text>
-                  Pay PHP {item.price} to {item.owner.wallet}
+                  Pay PHP {item.price} to {item.gcash}
                 </Text>
               </Text>
               <TextInput

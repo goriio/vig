@@ -18,6 +18,9 @@ export default async function handle(
             email: session?.user?.email,
           },
         },
+        include: {
+          owner: true,
+        },
       });
       return res.send(result);
     }

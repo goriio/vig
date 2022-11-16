@@ -20,6 +20,7 @@ export type VirtualItem = {
   image: string;
   gcash: string;
   inMarket?: boolean;
+  ownerId?: string;
 };
 
 export default function Inventory() {

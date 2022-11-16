@@ -1,20 +1,22 @@
-import { Button, Card, Group, Image, Modal, Text } from '@mantine/core';
+import { Avatar, Button, Card, Group, Image, Modal, Text } from '@mantine/core';
 import { useState } from 'react';
 import { showNotification } from '@mantine/notifications';
 import { BiCheck } from 'react-icons/bi';
 import { useRouter } from 'next/router';
 import { Purchase } from './Purchase';
 import { VirtualItem } from '@/pages/inventory';
+import { useSession } from 'next-auth/react';
 
 type ItemCardProps = {
-  item: VirtualItem;
+  item: any;
 };
 
 export function ItemCard({ item }: ItemCardProps) {
   const [opened, setOpened] = useState(false);
   const [moving, setMoving] = useState(false);
   const router = useRouter();
-  const isOwner = true; // currentUser?.uid === item.owner.id;
+  const { data: session } = useSession();
+  const isOwner = session?.user?.email === item.owner?.email;
 
   function handleClick() {
     // // if (!currentUser) {
@@ -30,6 +32,7 @@ export function ItemCard({ item }: ItemCardProps) {
       // await updateDoc(doc(db, 'items', item.id), {
       //   inMarket: false,
       // });
+      router.push('/inventory');
       showNotification({
         message: `${item.name} has been moved to inventory.`,
         icon: <BiCheck />,
@@ -57,6 +60,7 @@ export function ItemCard({ item }: ItemCardProps) {
         },
         body: JSON.stringify({ inMarket: true }),
       });
+      router.push('/sell');
       showNotification({
         message: `${item.name} is now on sell.`,
         icon: <BiCheck />,
@@ -80,14 +84,26 @@ export function ItemCard({ item }: ItemCardProps) {
         <Card.Section p="md">
           {/* shadow="sm" */}
           <Image
-            height={100}
-            fit="contain"
+            height={90}
+            fit="cover"
             src={item.image}
             alt={item.name}
-            mb="md"
+            radius="sm"
+            mb="sm"
             withPlaceholder
           />
-          <Text size="sm" mb="xs">
+          <Group spacing="xs" mb="sm">
+            <Avatar
+              radius="xl"
+              size="sm"
+              src={item.owner.image}
+              alt={`${item.owner.name}'s image`}
+            />
+            <Text size="xs" color="dimmed" underline>
+              {item.owner.name}
+            </Text>
+          </Group>
+          <Text size="sm" fw={600}>
             {item.name}
           </Text>
           <Text size="xs" color="blue">
