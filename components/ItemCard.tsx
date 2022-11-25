@@ -14,6 +14,8 @@ import { BiCheck } from 'react-icons/bi';
 import { useRouter } from 'next/router';
 import { Purchase } from './Purchase';
 import { useSession } from 'next-auth/react';
+import { useMutation } from '@tanstack/react-query';
+import { VirtualItem } from '@prisma/client';
 
 type ItemCardProps = {
   item: any;
@@ -24,7 +26,16 @@ export function ItemCard({ item }: ItemCardProps) {
   const [moving, setMoving] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
+
   const isOwner = session?.user?.email === item.owner?.email;
+
+  const { mutate, isLoading: deleting } = useMutation({
+    mutationFn: async (virtualItem: VirtualItem) => {
+      await fetch(`/api/virtualItem/${virtualItem.id}`, {
+        method: 'DELETE',
+      });
+    },
+  });
 
   function handleClick() {
     if (!session) {
@@ -84,6 +95,29 @@ export function ItemCard({ item }: ItemCardProps) {
       });
     } finally {
       setMoving(false);
+      setOpened(false);
+    }
+  }
+
+  async function deleteVirtualItem(virtualItem: VirtualItem) {
+    try {
+      mutate(virtualItem, {
+        onSuccess: () => {
+          showNotification({
+            title: '🎉 Successful',
+            message: `${virtualItem.name} has been deleted.`,
+            icon: <BiCheck />,
+            color: 'teal',
+          });
+        },
+      });
+    } catch (error: any) {
+      showNotification({
+        title: 'Something went wrong',
+        message: error.message,
+        color: 'red',
+      });
+    } finally {
       setOpened(false);
     }
   }
@@ -148,11 +182,12 @@ export function ItemCard({ item }: ItemCardProps) {
             )}
 
             <Button
+              onClick={() => deleteVirtualItem(item)}
               variant="subtle"
               color="gray"
-              onClick={() => setOpened(false)}
+              loading={deleting}
             >
-              Delete
+              {deleting ? 'Deleting' : 'Delete'}
             </Button>
           </Stack>
         </Modal>
