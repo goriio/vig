@@ -1,10 +1,18 @@
-import { Avatar, Button, Card, Group, Image, Modal, Text } from '@mantine/core';
+import {
+  Avatar,
+  Button,
+  Card,
+  Group,
+  Image,
+  Modal,
+  Stack,
+  Text,
+} from '@mantine/core';
 import { useState } from 'react';
 import { showNotification } from '@mantine/notifications';
 import { BiCheck } from 'react-icons/bi';
 import { useRouter } from 'next/router';
 import { Purchase } from './Purchase';
-import { VirtualItem } from '@/pages/inventory';
 import { useSession } from 'next-auth/react';
 
 type ItemCardProps = {
@@ -117,33 +125,36 @@ export function ItemCard({ item }: ItemCardProps) {
         <Purchase item={item} opened={opened} setOpened={setOpened} />
       )}
       {isOwner && (
-        <Modal
-          opened={opened}
-          onClose={() => setOpened(false)}
-          withCloseButton={false}
-        >
-          <Text align="center" pb="lg">
-            Move &quot;{item.name}&quot;.
-          </Text>
-          <Group position="apart" grow>
-            <Button
-              variant="subtle"
-              color="red"
-              onClick={() => setOpened(false)}
-            >
-              Cancel
-            </Button>
-
+        <Modal opened={opened} onClose={() => setOpened(false)}>
+          <Stack spacing="xs">
             {item.inMarket ? (
-              <Button fullWidth onClick={moveToInventory} loading={moving}>
-                Inventory
+              <Button
+                onClick={moveToInventory}
+                variant="subtle"
+                color="gray"
+                loading={moving}
+              >
+                {moving ? 'Moving' : 'Move'} to inventory
               </Button>
             ) : (
-              <Button fullWidth onClick={moveToSell} loading={moving}>
-                Sell
+              <Button
+                onClick={moveToSell}
+                variant="subtle"
+                color="gray"
+                loading={moving}
+              >
+                Move to sell
               </Button>
             )}
-          </Group>
+
+            <Button
+              variant="subtle"
+              color="gray"
+              onClick={() => setOpened(false)}
+            >
+              Delete
+            </Button>
+          </Stack>
         </Modal>
       )}
     </>

@@ -154,7 +154,7 @@ export default function Inventory() {
         }
         items={inventory}
         noItem={{
-          message: `You don't have items in inventory`,
+          message: `This section is empty. Try adding virtual items.`,
         }}
       />
     </>
