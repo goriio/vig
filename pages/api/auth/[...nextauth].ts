@@ -13,7 +13,7 @@ const authHandler: NextApiHandler = (req, res) =>
       }),
     ],
     adapter: PrismaAdapter(prisma),
-    secret: process.env.SECRET,
+    // secret: process.env.SECRET,
     pages: {
       signIn: '/login',
     },

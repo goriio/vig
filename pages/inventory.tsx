@@ -12,6 +12,8 @@ import { useState } from 'react';
 import { BiCheck } from 'react-icons/bi';
 import { ItemList } from '@/components/ItemList';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 
 export type VirtualItem = {
   id?: string;
@@ -25,6 +27,12 @@ export type VirtualItem = {
 
 export default function Inventory() {
   const [opened, setOpened] = useState(false);
+  const { status } = useSession();
+  const router = useRouter();
+
+  if (status === 'unauthenticated') {
+    router.push('/signup');
+  }
 
   const { data: inventory } = useQuery({
     queryKey: ['inventory'],

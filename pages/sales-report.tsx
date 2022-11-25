@@ -9,6 +9,7 @@ import {
   ThemeIcon,
   Title,
 } from '@mantine/core';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { Line } from 'react-chartjs-2';
 import { BiCoinStack, BiLineChart } from 'react-icons/bi';
@@ -76,7 +77,12 @@ export const data = {
 };
 
 export default function SalesReport() {
+  const { status } = useSession();
   const router = useRouter();
+
+  if (status === 'unauthenticated') {
+    router.push('/signup');
+  }
 
   return (
     <>

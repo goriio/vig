@@ -2,9 +2,15 @@ import { ItemList } from '@/components/ItemList';
 import { Button, Group, Indicator } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
 
 export default function Sell() {
+  const { status } = useSession();
   const router = useRouter();
+
+  if (status === 'unauthenticated') {
+    router.push('/signup');
+  }
 
   const { data: virtualItems } = useQuery({
     queryKey: ['sell'],

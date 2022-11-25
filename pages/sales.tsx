@@ -10,6 +10,7 @@ import {
 } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
 
 function truncate(string: string) {
   const maxLength = 40;
@@ -20,6 +21,13 @@ function truncate(string: string) {
 }
 
 function Item({ item }: any) {
+  const { status } = useSession();
+  const router = useRouter();
+
+  if (status === 'unauthenticated') {
+    router.push('/signup');
+  }
+
   return (
     <Card>
       <Group position="apart">

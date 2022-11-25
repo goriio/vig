@@ -27,12 +27,12 @@ export function Hero() {
           }}
         >
           <ActionIcon
-            sx={{
+            style={{
               position: 'absolute',
               top: '0.5rem',
               right: '0.5rem',
               fontSize: '2rem',
-              // zIndex: '1',
+              zIndex: '1',
             }}
             onClick={() => {
               setOpened(false);
