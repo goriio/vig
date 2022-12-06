@@ -80,26 +80,25 @@ export default function Inventory() {
   });
 
   function addItem(virtualItem: VirtualItem) {
-    try {
-      mutate(virtualItem, {
-        onSuccess: () => {
-          showNotification({
-            title: '🎉 Successful',
-            message: 'You have added an item in your inventory.',
-            icon: <BiCheck />,
-            color: 'teal',
-          });
-          form.reset();
-          setOpened(false);
-        },
-      });
-    } catch (error: any) {
-      showNotification({
-        title: 'Something went wrong',
-        message: error.message,
-        color: 'red',
-      });
-    }
+    mutate(virtualItem, {
+      onSuccess: () => {
+        showNotification({
+          title: '🎉 Successful',
+          message: 'You have added an item in your inventory.',
+          icon: <BiCheck />,
+          color: 'teal',
+        });
+        form.reset();
+        setOpened(false);
+      },
+      onError: (error: any) => {
+        showNotification({
+          title: 'Something went wrong',
+          message: error.message,
+          color: 'red',
+        });
+      },
+    });
   }
 
   return (

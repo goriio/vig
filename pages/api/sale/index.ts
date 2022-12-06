@@ -12,15 +12,17 @@ export default async function handle(
     case 'GET': {
       const result = await prisma.sale.findMany({
         where: {
+          approvedAt: null,
           virtualItem: {
             owner: {
               email: session?.user?.email,
             },
             bought: true,
           },
-          approvedAt: {
-            not: null,
-          },
+        },
+        include: {
+          buyer: true,
+          virtualItem: true,
         },
       });
       return res.send(result);

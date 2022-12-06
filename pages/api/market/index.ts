@@ -27,6 +27,9 @@ export default async function handle(
         });
       } else {
         result = await prisma.virtualItem.findMany({
+          where: {
+            inMarket: true,
+          },
           include: {
             owner: true,
           },
