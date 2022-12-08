@@ -3,6 +3,7 @@ import {
   Card,
   Grid,
   Group,
+  Skeleton,
   Stack,
   Table,
   Text,
@@ -63,6 +64,23 @@ function getLastSevenDaySales(
   });
 }
 
+function Loading() {
+  return (
+    <Grid columns={4} align="stretch">
+      <Grid.Col sm={3} span={4}>
+        <Skeleton height={393} />
+      </Grid.Col>
+      <Grid.Col sm={1} span={4}>
+        <Stack>
+          <Skeleton height={120} />
+          <Skeleton height={120} />
+          <Skeleton height={120} />
+        </Stack>
+      </Grid.Col>
+    </Grid>
+  );
+}
+
 export default function SalesReport() {
   const { status } = useSession();
   const router = useRouter();
@@ -71,38 +89,13 @@ export default function SalesReport() {
     router.push('/signup');
   }
 
-  const { data: sales, isLoading } = useQuery<SaleWithBuyerAndVirtualItem[]>({
+  const { data: sales } = useQuery<SaleWithBuyerAndVirtualItem[]>({
     queryKey: ['salesReport'],
     queryFn: async () => {
       const response = await fetch('/api/salesReport');
       return await response.json();
     },
   });
-
-  if (!sales) {
-    return null;
-  }
-
-  const cards = [
-    {
-      color: 'blue',
-      icon: <BiLineChart />,
-      text: 'Total Sales',
-      data: pesoFormat(getTotalSales(sales)),
-    },
-    {
-      color: 'yellow',
-      icon: <BiCoinStack />,
-      text: 'Average Sale',
-      data: pesoFormat(getAverageSale(sales)),
-    },
-    {
-      color: 'green',
-      icon: <BsBoxSeam />,
-      text: 'Count of Sales',
-      data: sales.length,
-    },
-  ];
 
   return (
     <>
@@ -112,97 +105,121 @@ export default function SalesReport() {
           Go home
         </Button>
       </Group>
-      <Grid columns={4} align="stretch">
-        <Grid.Col sm={3} span={4}>
-          <Card sx={{ height: '100%' }}>
-            <Title order={6} mb="md">
-              Weekly recap statistics
-            </Title>
-            <Line
-              options={{
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    ticks: {
-                      stepSize: 1,
+
+      {!sales ? (
+        <Loading />
+      ) : (
+        <Grid columns={4} align="stretch">
+          <Grid.Col sm={3} span={4}>
+            <Card sx={{ height: '100%' }}>
+              <Title order={6} mb="md">
+                Weekly recap statistics
+              </Title>
+              <Line
+                options={{
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      ticks: {
+                        stepSize: 1,
+                      },
                     },
                   },
-                },
-                responsive: true,
-                plugins: {
-                  legend: {
-                    display: false,
-                    position: 'top',
+                  responsive: true,
+                  plugins: {
+                    legend: {
+                      display: false,
+                      position: 'top',
+                    },
                   },
+                }}
+                data={{
+                  labels: getLastSevenDays().map((day) =>
+                    dayjs(day).format('MMM D')
+                  ),
+                  datasets: [
+                    {
+                      label: 'Sales',
+                      data: getLastSevenDaySales(getLastSevenDays(), sales),
+                      borderColor: 'rgb(53, 162, 235)',
+                      backgroundColor: 'rgba(53, 162, 235, 0.5)',
+                    },
+                  ],
+                }}
+              />
+            </Card>
+          </Grid.Col>
+
+          <Grid.Col sm={1} span={4}>
+            <Stack>
+              {[
+                {
+                  color: 'blue',
+                  icon: <BiLineChart />,
+                  text: 'Total Sales',
+                  data: pesoFormat(getTotalSales(sales)),
                 },
-              }}
-              data={{
-                labels: getLastSevenDays().map((day) =>
-                  dayjs(day).format('MMM D')
-                ),
-                datasets: [
-                  {
-                    label: 'Sales',
-                    data: getLastSevenDaySales(getLastSevenDays(), sales),
-                    borderColor: 'rgb(53, 162, 235)',
-                    backgroundColor: 'rgba(53, 162, 235, 0.5)',
-                  },
-                ],
-              }}
-            />
-          </Card>
-        </Grid.Col>
+                {
+                  color: 'yellow',
+                  icon: <BiCoinStack />,
+                  text: 'Average Sale',
+                  data: pesoFormat(getAverageSale(sales)),
+                },
+                {
+                  color: 'green',
+                  icon: <BsBoxSeam />,
+                  text: 'Count of Sales',
+                  data: sales.length,
+                },
+              ].map((card, index) => (
+                <Card key={index}>
+                  <ThemeIcon
+                    variant="light"
+                    size="lg"
+                    radius="xl"
+                    mb="md"
+                    color={card.color}
+                  >
+                    {card.icon}
+                  </ThemeIcon>
+                  <Text size="sm">{card.text}</Text>
+                  <Title order={4}>{card.data}</Title>
+                </Card>
+              ))}
+            </Stack>
+          </Grid.Col>
 
-        <Grid.Col sm={1} span={4}>
-          <Stack>
-            {cards.map((card, index) => (
-              <Card key={index}>
-                <ThemeIcon
-                  variant="light"
-                  size="lg"
-                  radius="xl"
-                  mb="md"
-                  color={card.color}
-                >
-                  {card.icon}
-                </ThemeIcon>
-                <Text size="sm">{card.text}</Text>
-                <Title order={4}>{card.data}</Title>
-              </Card>
-            ))}
-          </Stack>
-        </Grid.Col>
-
-        <Grid.Col>
-          <Card>
-            <Title order={6} mb="sm">
-              Recently sold virtual items
-            </Title>
-            <Table>
-              <thead>
-                <tr>
-                  <th>Virtual Item</th>
-                  <th>Approved Date</th>
-                  <th>Price</th>
-                  <th>Reference no.</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sales?.map((sale) => (
-                  <tr key={sale.id}>
-                    <td>{sale.virtualItem.name}</td>
-                    <td>
-                      {dayjs(sale.approvedAt).format('MMM D, YYYY h:mm A')}
-                    </td>
-                    <td>{pesoFormat(sale.virtualItem.price)}</td>
-                    <td>{sale.referenceNo}</td>
+          <Grid.Col>
+            <Card>
+              <Title order={6} mb="sm">
+                Recently sold virtual items
+              </Title>
+              <Table>
+                <thead>
+                  <tr>
+                    <th>Virtual Item</th>
+                    <th>Approved Date</th>
+                    <th>Price</th>
+                    <th>Reference no.</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
-          </Card>
-        </Grid.Col>
-      </Grid>
+                </thead>
+                <tbody>
+                  {sales?.map((sale) => (
+                    <tr key={sale.id}>
+                      <td>{sale.virtualItem.name}</td>
+                      <td>
+                        {dayjs(sale.approvedAt).format('MMM D, YYYY h:mm A')}
+                      </td>
+                      <td>{pesoFormat(sale.virtualItem.price)}</td>
+                      <td>{sale.referenceNo}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </Card>
+          </Grid.Col>
+        </Grid>
+      )}
     </>
   );
 }
