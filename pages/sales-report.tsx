@@ -9,72 +9,59 @@ import {
   ThemeIcon,
   Title,
 } from '@mantine/core';
+import { Sale, User, VirtualItem } from '@prisma/client';
+import { useQuery } from '@tanstack/react-query';
+import dayjs from 'dayjs';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { Line } from 'react-chartjs-2';
 import { BiCoinStack, BiLineChart } from 'react-icons/bi';
 import { BsBoxSeam, BsFileEarmarkSlides } from 'react-icons/bs';
 
-const elements = [
-  { id: 19, title: 'Glock-18 | Death Rattle', date: '18/9/2022', price: 128 },
-  { id: 29, title: 'Glock-18 | Death Rattle', date: '18/9/2022', price: 128 },
-  { id: 39, title: 'Glock-18 | Death Rattle', date: '18/9/2022', price: 128 },
-  { id: 56, title: 'Glock-18 | Death Rattle', date: '18/9/2022', price: 128 },
-  { id: 58, title: 'Glock-18 | Death Rattle', date: '18/9/2022', price: 128 },
-];
-
-const cards = [
-  {
-    color: 'blue',
-    icon: <BiLineChart />,
-    text: 'Total Sales',
-    data: 'PHP 192,392.00',
-  },
-  {
-    color: 'yellow',
-    icon: <BiCoinStack />,
-    text: 'Average Sale',
-    data: 'PHP 122.00',
-  },
-  {
-    color: 'green',
-    icon: <BsBoxSeam />,
-    text: 'Count of Sales',
-    data: '77',
-  },
-];
-
-export const options = {
-  responsive: true,
-  plugins: {
-    legend: {
-      display: false,
-      position: 'top',
-    },
-  },
+type SaleWithBuyerAndVirtualItem = Sale & {
+  buyer: User;
+  virtualItem: VirtualItem;
 };
 
-const labels = [
-  'May 31',
-  'June 7',
-  'June 14',
-  'June 21',
-  'June 28',
-  'August 5',
-  'August 12',
-];
+function pesoFormat(price: number) {
+  return `PHP ${price.toFixed(2)}`;
+}
 
-export const data = {
-  labels,
-  datasets: [
-    {
-      label: 'Sales',
-      data: labels.map(() => 12),
-      borderColor: 'rgb(53, 162, 235)',
-      backgroundColor: 'rgba(53, 162, 235, 0.5)',
-    },
-  ],
-};
+function getTotalSales(sales: SaleWithBuyerAndVirtualItem[]) {
+  return sales.reduce((total, sale) => {
+    return total + sale.virtualItem.price;
+  }, 0);
+}
+
+function getAverageSale(sales: SaleWithBuyerAndVirtualItem[]) {
+  return getTotalSales(sales) / sales.length;
+}
+
+function getLastSevenDays() {
+  return [6, 5, 4, 3, 2, 1, 0].map((index) => {
+    const date = new Date();
+    date.setDate(date.getDate() - index);
+
+    return date;
+  });
+}
+
+function getLastSevenDaySales(
+  days: Date[],
+  sales: SaleWithBuyerAndVirtualItem[]
+) {
+  return days.map((day) => {
+    let count = 0;
+
+    sales.forEach((sale) => {
+      if (dayjs(day).isSame(sale.approvedAt, 'day')) {
+        count += 1;
+      }
+    });
+
+    return count;
+  });
+}
 
 export default function SalesReport() {
   const { status } = useSession();
@@ -83,6 +70,39 @@ export default function SalesReport() {
   if (status === 'unauthenticated') {
     router.push('/signup');
   }
+
+  const { data: sales, isLoading } = useQuery<SaleWithBuyerAndVirtualItem[]>({
+    queryKey: ['salesReport'],
+    queryFn: async () => {
+      const response = await fetch('/api/salesReport');
+      return await response.json();
+    },
+  });
+
+  if (!sales) {
+    return null;
+  }
+
+  const cards = [
+    {
+      color: 'blue',
+      icon: <BiLineChart />,
+      text: 'Total Sales',
+      data: pesoFormat(getTotalSales(sales)),
+    },
+    {
+      color: 'yellow',
+      icon: <BiCoinStack />,
+      text: 'Average Sale',
+      data: pesoFormat(getAverageSale(sales)),
+    },
+    {
+      color: 'green',
+      icon: <BsBoxSeam />,
+      text: 'Count of Sales',
+      data: sales.length,
+    },
+  ];
 
   return (
     <>
@@ -96,9 +116,40 @@ export default function SalesReport() {
         <Grid.Col sm={3} span={4}>
           <Card sx={{ height: '100%' }}>
             <Title order={6} mb="md">
-              Weekly Recap Statistics
+              Weekly recap statistics
             </Title>
-            {/* <Line options={options} data={data} /> */}
+            <Line
+              options={{
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      stepSize: 1,
+                    },
+                  },
+                },
+                responsive: true,
+                plugins: {
+                  legend: {
+                    display: false,
+                    position: 'top',
+                  },
+                },
+              }}
+              data={{
+                labels: getLastSevenDays().map((day) =>
+                  dayjs(day).format('MMM D')
+                ),
+                datasets: [
+                  {
+                    label: 'Sales',
+                    data: getLastSevenDaySales(getLastSevenDays(), sales),
+                    borderColor: 'rgb(53, 162, 235)',
+                    backgroundColor: 'rgba(53, 162, 235, 0.5)',
+                  },
+                ],
+              }}
+            />
           </Card>
         </Grid.Col>
 
@@ -125,24 +176,26 @@ export default function SalesReport() {
         <Grid.Col>
           <Card>
             <Title order={6} mb="sm">
-              Recently Sold Virtual Items
+              Recently sold virtual items
             </Title>
             <Table>
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>Virtual Item</th>
-                  <th>Date</th>
+                  <th>Approved Date</th>
                   <th>Price</th>
+                  <th>Reference no.</th>
                 </tr>
               </thead>
               <tbody>
-                {elements.map((element) => (
-                  <tr key={element.id}>
-                    <td>{element.id}</td>
-                    <td>{element.title}</td>
-                    <td>{element.date}</td>
-                    <td>PHP {element.price.toFixed(2)}</td>
+                {sales?.map((sale) => (
+                  <tr key={sale.id}>
+                    <td>{sale.virtualItem.name}</td>
+                    <td>
+                      {dayjs(sale.approvedAt).format('MMM D, YYYY h:mm A')}
+                    </td>
+                    <td>{pesoFormat(sale.virtualItem.price)}</td>
+                    <td>{sale.referenceNo}</td>
                   </tr>
                 ))}
               </tbody>
