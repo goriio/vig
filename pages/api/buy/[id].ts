@@ -6,39 +6,43 @@ export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const virtualItemId = req.query.id as string;
   const session = await getSession({ req });
+  const virtualItemId = req.query.id as string;
   const { referenceNo } = req.body;
 
   switch (req.method) {
     case 'POST': {
-      await prisma.virtualItem.update({
-        where: {
-          id: virtualItemId,
-        },
-        data: {
-          inMarket: false,
-          bought: true,
-        },
-      });
+      try {
+        const result = await prisma.sale.create({
+          data: {
+            referenceNo,
+            virtualItem: {
+              connect: {
+                id: virtualItemId,
+              },
+            },
+            buyer: {
+              connect: {
+                email: session?.user?.email!,
+              },
+            },
+          },
+        });
 
-      const result = await prisma.sale.create({
-        data: {
-          referenceNo,
-          virtualItem: {
-            connect: {
-              id: virtualItemId,
-            },
+        await prisma.virtualItem.update({
+          where: {
+            id: virtualItemId,
           },
-          buyer: {
-            connect: {
-              email: session?.user?.email!,
-            },
+          data: {
+            inMarket: false,
+            bought: true,
           },
-        },
-      });
-      console.log(result);
-      return res.send(result);
+        });
+
+        return res.send(result);
+      } catch {
+        return res.status(500).send({ error: 'Something went wrong' });
+      }
     }
 
     default: {

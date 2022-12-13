@@ -34,7 +34,7 @@ model Sale {
   createdAt   DateTime    @default(now())
   approvedAt  DateTime?
 
-  buyerId       String @unique
+  buyerId       String
   virtualItemId String @unique
 }
 

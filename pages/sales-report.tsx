@@ -113,7 +113,7 @@ export default function SalesReport() {
           <Grid.Col sm={3} span={4}>
             <Card sx={{ height: '100%' }}>
               <Title order={6} mb="md">
-                Weekly recap statistics
+                Sales recap statistics
               </Title>
               <Line
                 options={{

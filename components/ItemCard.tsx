@@ -143,7 +143,7 @@ export function ItemCard({ item }: ItemCardProps) {
               src={item.owner.image}
               alt={`${item.owner.name}'s image`}
             />
-            <Text size="xs" color="dimmed" underline>
+            <Text size="xs" color="dimmed">
               {item.owner.name}
             </Text>
           </Group>

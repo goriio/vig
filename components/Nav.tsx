@@ -1,5 +1,6 @@
 import {
   Avatar,
+  Badge,
   Burger,
   Button,
   Container,
@@ -13,7 +14,14 @@ import {
 } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import { Logo } from './Logo';
-import { BiBox, BiBorderAll, BiArchiveOut, BiLogOut } from 'react-icons/bi';
+import {
+  BiBox,
+  BiBorderAll,
+  BiArchiveOut,
+  BiLogOut,
+  BiShoppingBag,
+  BiUser,
+} from 'react-icons/bi';
 import { useState } from 'react';
 import { BiSearch } from 'react-icons/bi';
 import { useMediaQuery } from '@mantine/hooks';
@@ -21,6 +29,8 @@ import { useRouter } from 'next/router';
 import { ActiveLink } from './ActiveLink';
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
+import { useQuery } from '@tanstack/react-query';
+import { OrderWithVirtualItem } from '@/pages/orders';
 
 const useStyles = createStyles((theme) => ({
   navLink: {
@@ -74,6 +84,18 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
+function getOrdersLength(orders: OrderWithVirtualItem[]) {
+  let count = 0;
+
+  orders.forEach((order) => {
+    if (!order.approvedAt) {
+      count += 1;
+    }
+  });
+
+  return count;
+}
+
 export function Nav() {
   const [burgerOpened, setBurgerOpened] = useState(false);
   const [search, setSearch] = useState('');
@@ -82,6 +104,14 @@ export function Nav() {
   const theme = useMantineTheme();
   const smallScreen = useMediaQuery(`(max-width: ${theme.breakpoints.sm}px`);
   const router = useRouter();
+
+  const { data: orders } = useQuery({
+    queryKey: ['orders'],
+    queryFn: async () => {
+      const response = await fetch('/api/order');
+      return await response.json();
+    },
+  });
 
   return (
     <Header fixed height={60} style={{ zIndex: '200' }}>
@@ -114,7 +144,7 @@ export function Nav() {
           <form
             onSubmit={(event) => {
               event.preventDefault();
-              
+
               if (search.trim() === '') {
                 showNotification({
                   message: 'You did not input something',
@@ -150,10 +180,24 @@ export function Nav() {
               </Menu.Target>
               <Menu.Dropdown>
                 <Menu.Label>Account</Menu.Label>
+                <Menu.Item icon={<BiUser />} component={Link} href="/profile">
+                  Profile
+                </Menu.Item>
+                <Menu.Item
+                  icon={<BiShoppingBag />}
+                  component={Link}
+                  href="/orders"
+                >
+                  <Group>
+                    <Text>Orders</Text>
+                    {orders && <Badge>{getOrdersLength(orders)}</Badge>}
+                  </Group>
+                </Menu.Item>
                 <Menu.Item
                   icon={<BiLogOut />}
                   component="button"
                   onClick={() => signOut()}
+                  color="red"
                 >
                   Log out
                 </Menu.Item>

@@ -38,8 +38,10 @@ export function Purchase({ opened, setOpened, item }: any) {
     },
   });
 
-  const { mutate } = useMutation({
-    mutationFn: async (referenceNo: string) => {
+  const { mutate: purchase } = useMutation({
+    mutationFn: async ({ referenceNo }: { referenceNo: String }) => {
+      setPurchaseLoading(true);
+
       await fetch(`/api/buy/${item.id}`, {
         method: 'POST',
         headers: {
@@ -48,12 +50,9 @@ export function Purchase({ opened, setOpened, item }: any) {
         body: JSON.stringify({ referenceNo }),
       });
     },
-  });
+    onSuccess: (data: any) => {
+      setPurchaseLoading(false);
 
-  async function handlePurchase({ referenceNo }: any) {
-    try {
-      setPurchaseLoading(true);
-      mutate(referenceNo);
       showNotification({
         title: '🎉 Successful',
         message: 'The owner has been notified.',
@@ -62,16 +61,15 @@ export function Purchase({ opened, setOpened, item }: any) {
       });
 
       nextStep();
-    } catch (error: any) {
+    },
+    onError: () => {
       showNotification({
-        title: 'Something went wrong',
-        message: error.message,
+        message: 'Something went wrong',
         color: 'red',
       });
-    } finally {
       setPurchaseLoading(false);
-    }
-  }
+    },
+  });
 
   return (
     <Modal
@@ -114,7 +112,7 @@ export function Purchase({ opened, setOpened, item }: any) {
           </Group>
         </Stepper.Step>
         <Stepper.Step label="Step 2" description="Purchase">
-          <form onSubmit={form.onSubmit(handlePurchase)}>
+          <form onSubmit={form.onSubmit((values) => purchase(values))}>
             <Stack>
               <Text align="center" weight="bold">
                 <Image
@@ -152,7 +150,7 @@ export function Purchase({ opened, setOpened, item }: any) {
             <Text align="center" size="sm" color="dimmed">
               You can view your purchased virtual items
               <br />
-              in your inventory.
+              in your orders.
             </Text>
           </Stack>
           <Group grow position="right" mt="xl">
@@ -161,10 +159,10 @@ export function Purchase({ opened, setOpened, item }: any) {
             </Button>
             <Button
               onClick={() => {
-                setOpened(false);
+                router.push('orders');
               }}
             >
-              Go to market
+              Go to Orders
             </Button>
           </Group>
         </Stepper.Completed>
