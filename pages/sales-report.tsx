@@ -82,7 +82,7 @@ function Loading() {
 }
 
 export default function SalesReport() {
-  const { status } = useSession();
+  const { status, data } = useSession();
   const router = useRouter();
 
   if (status === 'unauthenticated') {
@@ -100,7 +100,7 @@ export default function SalesReport() {
   return (
     <>
       <Group position="apart" mb="md">
-        <Title order={4}>Sales Report</Title>
+        <Title order={4}>Sales report for {data?.user?.name}</Title>
         <Button variant="subtle" onClick={() => router.push('/')}>
           Go home
         </Button>
