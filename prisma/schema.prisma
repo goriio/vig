@@ -20,7 +20,7 @@ model VirtualItem {
   bought    Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  owner  User   @relation(fields: [userId], references: [id])
+  owner  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
 
   sale Sale?
