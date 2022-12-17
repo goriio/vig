@@ -1,8 +1,10 @@
 import {
+  ActionIcon,
   Button,
   Card,
   Grid,
   Group,
+  Select,
   Skeleton,
   Stack,
   Table,
@@ -16,8 +18,14 @@ import dayjs from 'dayjs';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { Line } from 'react-chartjs-2';
-import { BiCoinStack, BiLineChart } from 'react-icons/bi';
+import {
+  BiCoinStack,
+  BiLeftArrow,
+  BiLineChart,
+  BiRightArrow,
+} from 'react-icons/bi';
 import { BsBoxSeam, BsFileEarmarkSlides } from 'react-icons/bs';
+import { useState } from 'react';
 
 type SaleWithBuyerAndVirtualItem = Sale & {
   buyer: User;
@@ -38,19 +46,33 @@ function getAverageSale(sales: SaleWithBuyerAndVirtualItem[]) {
   return getTotalSales(sales) / sales.length;
 }
 
-function getLastSevenDays() {
-  return [6, 5, 4, 3, 2, 1, 0].map((index) => {
+function getPreviousDays({
+  numberOfDays,
+  currentDate = 0,
+}: {
+  numberOfDays: number;
+  currentDate?: number;
+}) {
+  const result = [];
+
+  for (
+    let index = numberOfDays - 1 + currentDate;
+    index >= currentDate;
+    index--
+  ) {
     const date = new Date();
     date.setDate(date.getDate() - index);
 
-    return date;
-  });
+    result.push(date);
+  }
+
+  return result;
+  // return [6, 5, 4, 3, 2, 1, 0].map((index) => {
+
+  // });
 }
 
-function getLastSevenDaySales(
-  days: Date[],
-  sales: SaleWithBuyerAndVirtualItem[]
-) {
+function getSales(days: Date[], sales: SaleWithBuyerAndVirtualItem[]) {
   return days.map((day) => {
     let count = 0;
 
@@ -84,6 +106,8 @@ function Loading() {
 export default function SalesReport() {
   const { status, data } = useSession();
   const router = useRouter();
+  const [frequency, setFrequency] = useState<string | null>('7');
+  const [currentIndexDate, setCurrentIndexDate] = useState(0);
 
   if (status === 'unauthenticated') {
     router.push('/signup');
@@ -112,9 +136,40 @@ export default function SalesReport() {
         <Grid columns={4} align="stretch">
           <Grid.Col sm={3} span={4}>
             <Card sx={{ height: '100%' }}>
-              <Title order={6} mb="md">
-                Sales recap statistics
-              </Title>
+              <Group position="apart" align="center" mb="md">
+                <Title size="h6">Sales recap statistics</Title>
+                <Group>
+                  <Select
+                    value={frequency}
+                    onChange={setFrequency}
+                    data={[
+                      { value: '7', label: 'Weekly' },
+                      { value: '30', label: 'Monthly' },
+                    ]}
+                    size="xs"
+                  />
+                  <ActionIcon
+                    onClick={() =>
+                      setCurrentIndexDate(
+                        (current) => current + Number(frequency)
+                      )
+                    }
+                    title="Previous"
+                  >
+                    <BiLeftArrow />
+                  </ActionIcon>
+                  <ActionIcon
+                    onClick={() =>
+                      setCurrentIndexDate(
+                        (current) => current - Number(frequency)
+                      )
+                    }
+                    title="Next"
+                  >
+                    <BiRightArrow />
+                  </ActionIcon>
+                </Group>
+              </Group>
               <Line
                 options={{
                   scales: {
@@ -134,13 +189,20 @@ export default function SalesReport() {
                   },
                 }}
                 data={{
-                  labels: getLastSevenDays().map((day) =>
-                    dayjs(day).format('MMM D')
-                  ),
+                  labels: getPreviousDays({
+                    numberOfDays: Number(frequency),
+                    currentDate: currentIndexDate,
+                  }).map((day) => dayjs(day).format('MMM D')),
                   datasets: [
                     {
                       label: 'Sales',
-                      data: getLastSevenDaySales(getLastSevenDays(), sales),
+                      data: getSales(
+                        getPreviousDays({
+                          numberOfDays: Number(frequency),
+                          currentDate: currentIndexDate,
+                        }),
+                        sales
+                      ),
                       borderColor: 'rgb(53, 162, 235)',
                       backgroundColor: 'rgba(53, 162, 235, 0.5)',
                     },
