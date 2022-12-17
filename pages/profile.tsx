@@ -15,7 +15,7 @@ import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import { User } from '@prisma/client';
 import { useMutation } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { BiBomb, BiCheck } from 'react-icons/bi';
 
@@ -79,6 +79,7 @@ export default function Profile() {
       });
     },
     onSuccess: () => {
+      signOut();
       showNotification({
         message: 'Account has been deleted.',
         icon: <BiCheck />,
