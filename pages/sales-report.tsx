@@ -43,7 +43,7 @@ function getTotalSales(sales: SaleWithBuyerAndVirtualItem[]) {
 }
 
 function getAverageSale(sales: SaleWithBuyerAndVirtualItem[]) {
-  return getTotalSales(sales) / sales.length;
+  return getTotalSales(sales) / sales.length || 0;
 }
 
 function getPreviousDays({
@@ -67,9 +67,6 @@ function getPreviousDays({
   }
 
   return result;
-  // return [6, 5, 4, 3, 2, 1, 0].map((index) => {
-
-  // });
 }
 
 function getSales(days: Date[], sales: SaleWithBuyerAndVirtualItem[]) {
