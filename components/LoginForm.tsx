@@ -10,13 +10,18 @@ import {
   Stack,
 } from '@mantine/core';
 import { Logo } from './Logo';
-import { BiAt, BiLock } from 'react-icons/bi';
+import { BiAt, BiCheck, BiLock } from 'react-icons/bi';
 import { useForm } from '@mantine/form';
 import { isEmail } from '@/utils/validate';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
+import { showNotification } from '@mantine/notifications';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
 
 export function LoginForm() {
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
   const form = useForm({
     initialValues: {
       email: '',
@@ -34,6 +39,35 @@ export function LoginForm() {
     },
   });
 
+  async function login(values: { email: string; password: string }) {
+    setLoading(true);
+
+    const res = await signIn('credentials', {
+      email: values.email,
+      password: values.password,
+      redirect: false,
+    });
+
+    if (res?.ok) {
+      router.push('/');
+      showNotification({
+        title: '🎉 Successful',
+        message: 'You have logged in.',
+        icon: <BiCheck />,
+        color: 'teal',
+      });
+    }
+
+    if (res?.error) {
+      showNotification({
+        message: 'Invalid credentials',
+        color: 'red',
+      });
+    }
+
+    setLoading(false);
+  }
+
   return (
     <Card p="lg" sx={{ width: '100%' }}>
       <Stack>
@@ -41,7 +75,7 @@ export function LoginForm() {
           <Logo />
         </Center>
         <Title order={4}>Login</Title>
-        <form onSubmit={form.onSubmit(() => false)}>
+        <form onSubmit={form.onSubmit((values) => login(values))}>
           <Stack>
             <TextInput
               label="Email"
@@ -55,7 +89,7 @@ export function LoginForm() {
               icon={<BiLock />}
               {...form.getInputProps('password')}
             />
-            <Button type="submit" variant="default">
+            <Button type="submit" variant="default" loading={loading}>
               Log in
             </Button>
           </Stack>

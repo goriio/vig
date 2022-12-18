@@ -22,6 +22,7 @@
     "@types/node": "18.11.9",
     "@types/react": "18.0.25",
     "@types/react-dom": "18.0.9",
+    "bcrypt": "^5.1.0",
     "chart.js": "^3.9.1",
     "dayjs": "^1.11.6",
     "eslint": "8.27.0",
@@ -35,6 +36,7 @@
     "typescript": "4.9.3"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
     "prisma": "^4.7.1"
   }
 }

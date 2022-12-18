@@ -47,7 +47,9 @@ export default function Profile() {
   });
 
   const { mutate: updateProfile, isLoading: updatingProfile } = useMutation({
-    mutationFn: async (user: Omit<User, 'id' | 'emailVerified'>) => {
+    mutationFn: async (
+      user: Omit<User, 'id' | 'emailVerified' | 'password'>
+    ) => {
       await fetch('/api/profile', {
         method: 'PUT',
         headers: {
