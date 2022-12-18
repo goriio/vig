@@ -135,6 +135,7 @@ export default function Profile() {
           <TextInput
             label="Email"
             placeholder="email"
+            disabled
             {...form.getInputProps('email')}
           />
           <TextInput

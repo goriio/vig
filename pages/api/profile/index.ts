@@ -8,7 +8,7 @@ export default async function handle(
   res: NextApiResponse
 ) {
   const session = await getSession({ req });
-  const { name, email, image }: User = req.body;
+  const { name, image }: User = req.body;
 
   switch (req.method) {
     case 'PUT': {
@@ -19,7 +19,6 @@ export default async function handle(
           },
           data: {
             name,
-            email,
             image,
           },
         });
