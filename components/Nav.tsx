@@ -60,7 +60,6 @@ const useStyles = createStyles((theme) => ({
     position: 'fixed',
     top: 60,
     left: '-100%',
-    right: 0,
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
@@ -80,6 +79,7 @@ const useStyles = createStyles((theme) => ({
 
   active: {
     left: 0,
+    right: 0,
     background: theme.colors.dark[8],
   },
 }));
