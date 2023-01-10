@@ -84,20 +84,14 @@ function Order({ order }: { order: OrderWithVirtualItem }) {
       </Modal>
       <Box
         sx={(theme) => ({
-          backgroundColor:
-            theme.colorScheme === 'dark'
-              ? theme.colors.dark[6]
-              : theme.colors.gray[0],
+          backgroundColor: theme.colors.dark[6],
           textAlign: 'center',
           padding: theme.spacing.md,
-          borderRadius: theme.radius.md,
+          borderRadius: theme.radius.sm,
           cursor: 'pointer',
 
           '&:hover': {
-            backgroundColor:
-              theme.colorScheme === 'dark'
-                ? theme.colors.dark[5]
-                : theme.colors.gray[1],
+            backgroundColor: theme.colors.dark[5],
           },
         })}
         onClick={() => setOpened(true)}
