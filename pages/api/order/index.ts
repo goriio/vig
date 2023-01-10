@@ -18,7 +18,14 @@ export default async function handle(
         },
         include: {
           buyer: true,
-          virtualItem: true,
+          virtualItem: {
+            include: {
+              owner: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
         },
       });
       return res.send(result);
