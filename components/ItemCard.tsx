@@ -124,9 +124,17 @@ export function ItemCard({ item }: ItemCardProps) {
 
   return (
     <>
-      <Card onClick={handleClick} sx={{ cursor: 'pointer' }}>
+      <Card
+        onClick={handleClick}
+        sx={(theme) => ({
+          cursor: 'pointer',
+
+          '&:hover': {
+            backgroundColor: theme.colors.dark[5],
+          },
+        })}
+      >
         <Card.Section p="md">
-          {/* shadow="sm" */}
           <Image
             height={90}
             fit="cover"
