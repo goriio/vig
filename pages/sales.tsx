@@ -195,7 +195,7 @@ function SaleCard({ sale }: { sale: SaleWithVirtualItem }) {
               {truncate(sale.virtualItem.name)}
             </Text>
           </Group>
-          <Text>{dayjs(sale.virtualItem.createdAt).fromNow()}</Text>
+          <Text>{dayjs(sale.createdAt).fromNow()}</Text>
         </Group>
       </Card>
     </>
