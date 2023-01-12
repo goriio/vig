@@ -24,6 +24,9 @@ export default async function handle(
           buyer: true,
           virtualItem: true,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       });
       return res.send(result);
     }

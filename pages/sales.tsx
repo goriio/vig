@@ -1,10 +1,13 @@
 import {
+  Avatar,
   Button,
   Card,
   Center,
   Group,
+  Image,
   Modal,
   Skeleton,
+  Space,
   Stack,
   Text,
   Title,
@@ -12,12 +15,21 @@ import {
 import { useRouter } from 'next/router';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-import { Sale, VirtualItem } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { useState } from 'react';
 import { showNotification } from '@mantine/notifications';
 import { BiCheck } from 'react-icons/bi';
+import dayjs from 'dayjs';
+import RelativeTime from 'dayjs/plugin/relativeTime';
 
-type SaleWithVirtualItem = Sale & { virtualItem: VirtualItem };
+dayjs.extend(RelativeTime);
+
+type SaleWithVirtualItem = Prisma.SaleGetPayload<{
+  include: {
+    buyer: true;
+    virtualItem: true;
+  };
+}>;
 
 function truncate(string: string) {
   const maxLength = 40;
@@ -27,8 +39,9 @@ function truncate(string: string) {
   return string.slice(0, maxLength) + '...';
 }
 
-function Sale({ sale }: { sale: SaleWithVirtualItem }) {
+function SaleCard({ sale }: { sale: SaleWithVirtualItem }) {
   const [ignoreDialogOpen, setIgnoreDialogOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const { mutate: ignore, isLoading: ignoring } = useMutation({
     mutationFn: async (sale: SaleWithVirtualItem) => {
@@ -88,6 +101,62 @@ function Sale({ sale }: { sale: SaleWithVirtualItem }) {
   return (
     <>
       <Modal
+        title="Take an action"
+        opened={modalOpen}
+        onClose={() => setModalOpen(false)}
+      >
+        <Image
+          height={200}
+          fit="contain"
+          src={sale.virtualItem.image}
+          alt={sale.virtualItem.name}
+          radius="sm"
+          mb="sm"
+          withPlaceholder
+        />
+
+        <Text fw={700}>{sale.virtualItem.name}</Text>
+
+        <Space h="md" />
+
+        <Text c="dimmed" fz="sm">
+          Buyer
+        </Text>
+        <Group>
+          <Avatar
+            src={sale.buyer.image}
+            alt={`${sale.buyer.name}'s profile picture`}
+            size="sm"
+            radius="xl"
+          />
+          <Text>{sale.buyer.name}</Text>
+        </Group>
+
+        <Space h="md" />
+
+        <Text c="dimmed" fz="sm">
+          Ref. No.{' '}
+        </Text>
+        <Text>{sale.referenceNo}</Text>
+
+        <Space h="md" />
+
+        <Text c="dimmed" fz="sm">
+          Date ordered
+        </Text>
+        <Text>{dayjs(sale.createdAt).format('MMM D, YYYY h:mm A')}</Text>
+
+        <Group position="right">
+          <Button variant="subtle" onClick={() => setIgnoreDialogOpen(true)}>
+            Ignore
+          </Button>
+          <Button onClick={() => confirm(sale)} loading={confirming}>
+            Confirm
+          </Button>
+        </Group>
+      </Modal>
+
+      <Modal
         opened={ignoreDialogOpen}
         onClose={() => setIgnoreDialogOpen(false)}
         withCloseButton={false}
@@ -109,22 +178,24 @@ function Sale({ sale }: { sale: SaleWithVirtualItem }) {
         </Group>
       </Modal>
 
-      <Card>
+      <Card
+        sx={(theme) => ({
+          cursor: 'pointer',
+          '&:hover': {
+            backgroundColor: theme.colors.dark[5],
+          },
+        })}
+        onClick={() => setModalOpen(true)}
+      >
         <Group position="apart">
           <Group>
+            <Text fw={600}>{sale.buyer.name}</Text>
+            <Text> ordered </Text>
             <Text fw={700} title={sale.virtualItem.name}>
               {truncate(sale.virtualItem.name)}
             </Text>
-            <Text>Ref. No. {sale.referenceNo}</Text>
           </Group>
-          <Group>
-            <Button variant="subtle" onClick={() => setIgnoreDialogOpen(true)}>
-              Ignore
-            </Button>
-            <Button onClick={() => confirm(sale)} loading={confirming}>
-              Confirm
-            </Button>
-          </Group>
+          <Text>{dayjs(sale.virtualItem.createdAt).fromNow()}</Text>
         </Group>
       </Card>
     </>
@@ -159,7 +230,7 @@ export default function Sales() {
         {sales ? (
           sales?.length ? (
             sales?.map((sale: SaleWithVirtualItem) => {
-              return <Sale key={sale.id} sale={sale} />;
+              return <SaleCard key={sale.id} sale={sale} />;
             })
           ) : (
             <Center
