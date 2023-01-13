@@ -25,7 +25,9 @@ import {
   BiRightArrow,
 } from 'react-icons/bi';
 import { BsBoxSeam, BsFileEarmarkSlides } from 'react-icons/bs';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { SalesReportTemplate } from '@/components/SalesReportTemplate';
+import { useReactToPrint } from 'react-to-print';
 
 type SaleWithBuyerAndVirtualItem = Sale & {
   buyer: User;
@@ -105,6 +107,7 @@ export default function SalesReport() {
   const router = useRouter();
   const [frequency, setFrequency] = useState<string | null>('7');
   const [currentIndexDate, setCurrentIndexDate] = useState(0);
+  const salesReportTemplateRef = useRef(null);
 
   if (status === 'unauthenticated') {
     router.push('/signup');
@@ -118,12 +121,19 @@ export default function SalesReport() {
     },
   });
 
+  const handlePrint = useReactToPrint({
+    content: () => salesReportTemplateRef.current,
+    documentTitle: `sales-report-for-${data?.user?.name}-${dayjs().format(
+      'DD-MM-YYYY'
+    )}`,
+  });
+
   return (
     <>
       <Group position="apart" mb="md">
         <Title order={4}>Sales report for {data?.user?.name}</Title>
-        <Button variant="subtle" onClick={() => router.push('/')}>
-          Go home
+        <Button variant="subtle" onClick={handlePrint}>
+          Generate sales report
         </Button>
       </Group>
 
@@ -253,7 +263,7 @@ export default function SalesReport() {
               <Title order={6} mb="sm">
                 Recently sold virtual items
               </Title>
-              <Table>
+              <Table fontSize="sm">
                 <thead>
                   <tr>
                     <th>Virtual Item</th>
@@ -278,6 +288,17 @@ export default function SalesReport() {
             </Card>
           </Grid.Col>
         </Grid>
+      )}
+      {sales && (
+        <SalesReportTemplate
+          sales={sales.filter((sale) => {
+            const saleDate = dayjs(sale.approvedAt);
+            return (
+              saleDate.month() === dayjs().month() && saleDate.year() === dayjs().year()
+            );
+          })}
+          ref={salesReportTemplateRef}
+        />
       )}
     </>
   );
