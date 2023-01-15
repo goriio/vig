@@ -1,9 +1,13 @@
 import {
+  ActionIcon,
   Button,
   Card,
+  Center,
   Group,
   Image,
   Modal,
+  Paper,
+  Space,
   Stack,
   Stepper,
   Text,
@@ -11,15 +15,38 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
-import { useState } from 'react';
-import { BiCheck } from 'react-icons/bi';
+import { Dispatch, useState, SetStateAction, useRef } from 'react';
+import { BiCheck, BiDownload } from 'react-icons/bi';
 import { useRouter } from 'next/router';
 import { useMutation } from '@tanstack/react-query';
+import { Prisma } from '@prisma/client';
+import dayjs from 'dayjs';
+import { Logo } from './Logo';
+import { toPng } from 'html-to-image';
+import download from 'downloadjs';
 
-export function Purchase({ opened, setOpened, item }: any) {
+type VirtualItemWithOwner = Prisma.VirtualItemGetPayload<{
+  include: {
+    owner: true;
+  };
+}>;
+
+export function Purchase({
+  opened,
+  setOpened,
+  item,
+}: {
+  opened: boolean;
+  setOpened: Dispatch<SetStateAction<boolean>>;
+  item: VirtualItemWithOwner;
+}) {
   const [active, setActive] = useState(0);
-  const router = useRouter();
+  const [orderedDate, setOrderedDate] = useState<Date | null>(null);
   const [purchaseLoading, setPurchaseLoading] = useState(false);
+  const receiptRef = useRef<HTMLDivElement>(null);
+
+  const router = useRouter();
+
   const nextStep = () =>
     setActive((current) => (current < 3 ? current + 1 : current));
   const prevStep = () =>
@@ -50,7 +77,7 @@ export function Purchase({ opened, setOpened, item }: any) {
         body: JSON.stringify({ referenceNo }),
       });
     },
-    onSuccess: (data: any) => {
+    onSuccess: () => {
       setPurchaseLoading(false);
 
       showNotification({
@@ -59,6 +86,8 @@ export function Purchase({ opened, setOpened, item }: any) {
         icon: <BiCheck />,
         color: 'teal',
       });
+
+      setOrderedDate(new Date());
 
       nextStep();
     },
@@ -88,13 +117,13 @@ export function Purchase({ opened, setOpened, item }: any) {
             >
               <Image
                 src={item.image}
-                alt={item.title}
+                alt={item.name}
                 height={170}
                 fit="contain"
               />
             </Card>
             <Text align="center" weight="bold">
-              {item.title}
+              {item.name}
             </Text>
             <Text align="center" size="sm" color="dimmed">
               The item&apos;s price is{' '}
@@ -144,6 +173,80 @@ export function Purchase({ opened, setOpened, item }: any) {
         </Stepper.Step>
         <Stepper.Completed>
           <Stack>
+            <Center>
+              <div style={{ position: 'relative', maxWidth: 300 }}>
+                <ActionIcon
+                  size="lg"
+                  variant="filled"
+                  pos="absolute"
+                  top={12}
+                  right={8}
+                  title="Download"
+                  color="blue"
+                  onClick={() => {
+                    if (receiptRef.current === null) return;
+
+                    toPng(receiptRef.current).then((dataUrl) => {
+                      download(dataUrl, `vig-${form.values.referenceNo}`);
+                    });
+                  }}
+                >
+                  <BiDownload size={20} />
+                </ActionIcon>
+
+                <Paper
+                  ref={receiptRef}
+                  radius={0}
+                  pt="lg"
+                  pb="md"
+                  px="sm"
+                  bg="blue"
+                >
+                  <Paper
+                    sx={(theme) => ({
+                      backgroundColor: theme.white,
+                      color: theme.colors.dark[8],
+                    })}
+                    p="md"
+                  >
+                    <Stack align="center">
+                      <Space h="sm" />
+                      <Logo />
+                      <Group>
+                        <Text size="sm" color="dimmed">
+                          Successfully ordered
+                        </Text>
+                      </Group>
+                      <Text size="sm" color="blue" fw={600} align="center">
+                        {item.name}
+                      </Text>
+                      <Group position="apart" w={170}>
+                        <Text size="sm" fw={600}>
+                          Price
+                        </Text>
+                        <Text size="sm" fw={600}>
+                          PHP {item.price.toFixed(2)}
+                        </Text>
+                      </Group>
+                      <Group position="apart" w={170}>
+                        <Text size="sm">Seller</Text>
+                        <Text size="sm">{item.owner.name}</Text>
+                      </Group>
+                      <Group position="apart" w={170}>
+                        <Text size="sm">GCash</Text>
+                        <Text size="sm">{item.gcash}</Text>
+                      </Group>
+                      <Space h="sm" />
+                      <Text size="xs">Ref. No. {form.values.referenceNo}</Text>
+                      <Text size="xs">
+                        {dayjs(orderedDate).format('MMM DD YYYY, h:mm A')}
+                      </Text>
+                      <Space h="sm" />
+                    </Stack>
+                  </Paper>
+                </Paper>
+              </div>
+            </Center>
             <Text align="center" weight="bold">
               Item is waiting for approval
             </Text>
