@@ -43,8 +43,10 @@ export const SalesReportTemplate = forwardRef<
         <Group position="apart">
           <Text>Sales report for {data?.user?.name}</Text>
           <Text>
-            Total sales:{' '}
-            {sales.reduce((total, sale) => total + sale.virtualItem.price, 0)}
+            Total sales: PHP{' '}
+            {sales
+              .reduce((total, sale) => total + sale.virtualItem.price, 0)
+              .toFixed(2)}
           </Text>
         </Group>
         <Group position="apart" mb="lg">
@@ -68,7 +70,11 @@ export const SalesReportTemplate = forwardRef<
                 <td>{sale.buyer.name}</td>
                 <td>{sale.referenceNo}</td>
                 <td>{sale.virtualItem.name}</td>
-                <td>P {sale.virtualItem.price}</td>
+                <td>
+                  <Text ta="right">
+                    PHP {sale.virtualItem.price.toFixed(2)}
+                  </Text>
+                </td>
               </tr>
             ))}
           </tbody>
