@@ -60,7 +60,7 @@ function SaleCard({ sale }: { sale: SaleWithVirtualItem }) {
         icon: <BiCheck />,
         color: 'teal',
       });
-      setIgnoreDialogOpen(false);
+      setModalOpen(false);
     },
     onError: (error: any) => {
       showNotification({
