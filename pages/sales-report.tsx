@@ -266,21 +266,25 @@ export default function SalesReport() {
               <Table fontSize="sm">
                 <thead>
                   <tr>
-                    <th>Virtual Item</th>
                     <th>Approved Date</th>
-                    <th>Price</th>
+                    <th>Virtual Item</th>
                     <th>Reference no.</th>
+                    <th>Price</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sales?.map((sale) => (
                     <tr key={sale.id}>
-                      <td>{sale.virtualItem.name}</td>
                       <td>
                         {dayjs(sale.approvedAt).format('MMM D, YYYY h:mm A')}
                       </td>
-                      <td>{pesoFormat(sale.virtualItem.price)}</td>
+                      <td>{sale.virtualItem.name}</td>
                       <td>{sale.referenceNo}</td>
+                      <td>
+                        <Text ta="right">
+                          {pesoFormat(sale.virtualItem.price)}
+                        </Text>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -294,7 +298,8 @@ export default function SalesReport() {
           sales={sales.filter((sale) => {
             const saleDate = dayjs(sale.approvedAt);
             return (
-              saleDate.month() === dayjs().month() && saleDate.year() === dayjs().year()
+              saleDate.month() === dayjs().month() &&
+              saleDate.year() === dayjs().year()
             );
           })}
           ref={salesReportTemplateRef}
